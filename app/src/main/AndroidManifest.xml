@@ -5,8 +5,10 @@
     <application
         android:allowBackup="true"
         android:usesCleartextTraffic="false"
-        android:label="Jijau UdyamSuite"
-        android:theme="@style/AppTheme">
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/Theme.Jijau.Starting">
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

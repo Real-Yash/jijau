@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -21,17 +23,22 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.FileProvider;
+import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.WindowCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.textview.MaterialTextView;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,9 +47,13 @@ import java.io.IOException;
 public class MainActivity extends ComponentActivity {
     private static final String HOME_URL = "https://jijau.udyamsuite.com";
     private static final String TRUSTED_HOST = "jijau.udyamsuite.com";
+    private static final int MENU_HOME = 1;
+    private static final int MENU_REFRESH = 2;
+    private static final int MENU_BROWSER = 3;
 
     private WebView webView;
-    private ProgressBar loadingIndicator;
+    private SwipeRefreshLayout pullToRefresh;
+    private LinearProgressIndicator loadingIndicator;
     private View connectionErrorView;
     private ValueCallback<Uri[]> pendingFileCallback;
     private Uri pendingCameraUri;
@@ -70,7 +81,9 @@ public class MainActivity extends ComponentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
         buildContentView();
         configureWebView();
 
@@ -82,36 +95,97 @@ public class MainActivity extends ComponentActivity {
     }
 
     private void buildContentView() {
-        FrameLayout root = new FrameLayout(this);
-        webView = new WebView(this);
-        root.addView(webView, new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(getColor(R.color.webview_surface));
 
-        loadingIndicator = new ProgressBar(this);
-        FrameLayout.LayoutParams progressParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
-        root.addView(loadingIndicator, progressParams);
+        MaterialToolbar toolbar = new MaterialToolbar(this);
+        toolbar.setTitle(R.string.toolbar_title);
+        toolbar.setTitleTextColor(getColor(R.color.on_app_bar));
+        addToolbarActions(toolbar);
+        root.addView(toolbar, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(56)));
+
+        loadingIndicator = new LinearProgressIndicator(this);
+        loadingIndicator.setIndicatorColor(getColor(R.color.progress_indicator));
+        loadingIndicator.setTrackColor(getColor(R.color.app_bar));
+        loadingIndicator.setVisibility(View.GONE);
+        root.addView(loadingIndicator, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(3)));
+
+        pullToRefresh = new SwipeRefreshLayout(this);
+        pullToRefresh.setColorSchemeColors(getColor(R.color.progress_indicator));
+        pullToRefresh.setOnChildScrollUpCallback((parent, child) -> webView.getScrollY() > 0);
+        pullToRefresh.setOnRefreshListener(() -> webView.reload());
+
+        FrameLayout webContainer = new FrameLayout(this);
+        webView = new WebView(this);
+        webView.setBackgroundColor(getColor(R.color.webview_surface));
+        webContainer.addView(webView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
         connectionErrorView = createConnectionErrorView();
-        root.addView(connectionErrorView, new FrameLayout.LayoutParams(
+        webContainer.addView(connectionErrorView, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         connectionErrorView.setVisibility(View.GONE);
+        pullToRefresh.addView(webContainer, new SwipeRefreshLayout.LayoutParams(
+                SwipeRefreshLayout.LayoutParams.MATCH_PARENT, SwipeRefreshLayout.LayoutParams.MATCH_PARENT));
+        root.addView(pullToRefresh, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
         setContentView(root);
+    }
+
+    private void addToolbarActions(MaterialToolbar toolbar) {
+        toolbar.getMenu().add(Menu.NONE, MENU_HOME, Menu.NONE, R.string.action_home)
+                .setIcon(R.drawable.ic_home)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        toolbar.getMenu().add(Menu.NONE, MENU_REFRESH, Menu.NONE, R.string.action_refresh)
+                .setIcon(R.drawable.ic_refresh)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        toolbar.getMenu().add(Menu.NONE, MENU_BROWSER, Menu.NONE, R.string.action_open_browser)
+                .setIcon(R.drawable.ic_open_in_browser)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == MENU_HOME) {
+                webView.loadUrl(HOME_URL);
+                return true;
+            }
+            if (item.getItemId() == MENU_REFRESH) {
+                webView.reload();
+                return true;
+            }
+            if (item.getItemId() == MENU_BROWSER) {
+                openCurrentPageInBrowser();
+                return true;
+            }
+            return false;
+        });
     }
 
     private View createConnectionErrorView() {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setGravity(Gravity.CENTER);
-        layout.setPadding(48, 48, 48, 48);
+        int padding = dp(24);
+        layout.setPadding(padding, padding, padding, padding);
+        layout.setBackgroundColor(getColor(R.color.webview_surface));
 
-        TextView message = new TextView(this);
-        message.setText("Unable to connect. Check your internet connection and try again.");
+        MaterialTextView title = new MaterialTextView(this);
+        title.setText(R.string.network_error_title);
+        title.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_HeadlineSmall);
+        title.setTextColor(getColor(R.color.on_surface));
+        title.setGravity(Gravity.CENTER);
+        layout.addView(title);
+
+        MaterialTextView message = new MaterialTextView(this);
+        message.setText(R.string.network_error_message);
+        message.setTextColor(getColor(R.color.on_surface));
         message.setGravity(Gravity.CENTER);
-        layout.addView(message);
+        layout.addView(message, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0));
 
-        Button retry = new Button(this);
-        retry.setText("Retry");
+        MaterialButton retry = new MaterialButton(this);
+        retry.setText(R.string.retry);
         retry.setOnClickListener(view -> webView.reload());
         layout.addView(retry);
         return layout;
@@ -138,7 +212,7 @@ public class MainActivity extends ComponentActivity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int progress) {
-                loadingIndicator.setVisibility(progress < 100 ? View.VISIBLE : View.GONE);
+                setLoadingProgress(progress);
             }
 
             @Override
@@ -169,25 +243,54 @@ public class MainActivity extends ComponentActivity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 connectionErrorView.setVisibility(View.GONE);
-                loadingIndicator.setVisibility(View.VISIBLE);
+                setLoadingProgress(0);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                loadingIndicator.setVisibility(View.GONE);
+                setLoadingProgress(100);
+                pullToRefresh.setRefreshing(false);
             }
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request,
                                         WebResourceError error) {
-                if (request.isForMainFrame()) {
-                    loadingIndicator.setVisibility(View.GONE);
+                if (request.isForMainFrame() && isConnectivityError(error)) {
+                    setLoadingProgress(100);
+                    pullToRefresh.setRefreshing(false);
                     connectionErrorView.setVisibility(View.VISIBLE);
                 }
             }
         });
 
         webView.setDownloadListener(this::downloadFile);
+    }
+
+    private void setLoadingProgress(int progress) {
+        loadingIndicator.setProgressCompat(progress, true);
+        loadingIndicator.setVisibility(progress < 100 ? View.VISIBLE : View.GONE);
+    }
+
+    private boolean isConnectivityError(WebResourceError error) {
+        int code = error.getErrorCode();
+        return code == WebViewClient.ERROR_CONNECT
+                || code == WebViewClient.ERROR_HOST_LOOKUP
+                || code == WebViewClient.ERROR_IO
+                || code == WebViewClient.ERROR_TIMEOUT;
+    }
+
+    private void openCurrentPageInBrowser() {
+        String currentUrl = webView.getUrl();
+        Uri uri = Uri.parse(currentUrl == null ? HOME_URL : currentUrl);
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        } catch (ActivityNotFoundException exception) {
+            Toast.makeText(this, "No app is available to open this link.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private Intent createFileChooserIntent(WebChromeClient.FileChooserParams params) {
@@ -198,13 +301,13 @@ public class MainActivity extends ComponentActivity {
                 params.getMode() == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE);
 
         if (!params.isCaptureEnabled()) {
-            return Intent.createChooser(picker, "Select file");
+            return Intent.createChooser(picker, getString(R.string.select_file));
         }
 
         Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File cameraDirectory = new File(getCacheDir(), "webview-camera");
         if (!cameraDirectory.exists() && !cameraDirectory.mkdirs()) {
-            return Intent.createChooser(picker, "Select file");
+            return Intent.createChooser(picker, getString(R.string.select_file));
         }
         try {
             File image = File.createTempFile("upload-", ".jpg", cameraDirectory);
@@ -212,11 +315,11 @@ public class MainActivity extends ComponentActivity {
                     getPackageName() + ".fileprovider", image);
             camera.putExtra(MediaStore.EXTRA_OUTPUT, pendingCameraUri);
             camera.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            return Intent.createChooser(picker, "Select file")
+            return Intent.createChooser(picker, getString(R.string.select_file))
                     .putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{camera});
         } catch (IOException exception) {
             pendingCameraUri = null;
-            return Intent.createChooser(picker, "Select file");
+            return Intent.createChooser(picker, getString(R.string.select_file));
         }
     }
 
