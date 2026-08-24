@@ -32,7 +32,6 @@ import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.FileProvider;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +42,6 @@ public class MainActivity extends ComponentActivity {
     private static final String TRUSTED_HOST = "jijau.udyamsuite.com";
 
     private WebView webView;
-    private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar loadingIndicator;
     private View connectionErrorView;
     private ValueCallback<Uri[]> pendingFileCallback;
@@ -85,13 +83,8 @@ public class MainActivity extends ComponentActivity {
 
     private void buildContentView() {
         FrameLayout root = new FrameLayout(this);
-        swipeRefreshLayout = new SwipeRefreshLayout(this);
         webView = new WebView(this);
-        swipeRefreshLayout.addView(webView, new SwipeRefreshLayout.LayoutParams(
-                SwipeRefreshLayout.LayoutParams.MATCH_PARENT,
-                SwipeRefreshLayout.LayoutParams.MATCH_PARENT));
-        swipeRefreshLayout.setOnRefreshListener(() -> webView.reload());
-        root.addView(swipeRefreshLayout, new FrameLayout.LayoutParams(
+        root.addView(webView, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
         loadingIndicator = new ProgressBar(this);
@@ -182,7 +175,6 @@ public class MainActivity extends ComponentActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 loadingIndicator.setVisibility(View.GONE);
-                swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
@@ -190,7 +182,6 @@ public class MainActivity extends ComponentActivity {
                                         WebResourceError error) {
                 if (request.isForMainFrame()) {
                     loadingIndicator.setVisibility(View.GONE);
-                    swipeRefreshLayout.setRefreshing(false);
                     connectionErrorView.setVisibility(View.VISIBLE);
                 }
             }
