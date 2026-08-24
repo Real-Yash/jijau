@@ -30,8 +30,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.FileProvider;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -79,7 +82,7 @@ public class MainActivity extends ComponentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         buildContentView();
         applySystemBarAppearance();
         configureWebView();
@@ -95,6 +98,12 @@ public class MainActivity extends ComponentActivity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(getColor(R.color.webview_surface));
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
+            Insets systemBars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         loadingIndicator = new LinearProgressIndicator(this);
         loadingIndicator.setIndicatorColor(getColor(R.color.progress_indicator));
@@ -123,6 +132,7 @@ public class MainActivity extends ComponentActivity {
         root.addView(pullToRefresh, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
         setContentView(root);
+        ViewCompat.requestApplyInsets(root);
     }
 
     /** Matches system bars to the active theme and keeps their icons legible. */

@@ -1,4 +1,4 @@
-# Jijau UdyamSuite Android wrapper
+# Jijau Android wrapper
 
 A minimal Android WebView app for:
 
