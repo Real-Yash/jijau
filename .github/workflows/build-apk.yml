@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Jijau Android APK
 
 on:
   workflow_dispatch:
@@ -19,17 +19,29 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android API 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.10.2'
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
 
       - name: Build debug APK
-        run: gradle :app:assembleDebug --stacktrace
+        run: ./gradlew --no-daemon assembleDebug --stacktrace
+
+      - name: Stage installable APK
+        run: |
+          mkdir -p artifact
+          cp app/build/outputs/apk/debug/app-debug.apk artifact/Jijau-UdyamSuite.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Jijau-UdyamSuite-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: artifact/Jijau-UdyamSuite.apk
           if-no-files-found: error

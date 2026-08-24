@@ -4,24 +4,13 @@ A minimal Android WebView app for:
 
 https://jijau.udyamsuite.com
 
-## Build in Android Studio
+## Build APK
 
-1. Open this folder in Android Studio.
-2. Allow Gradle sync to finish.
-3. Build > Build APK(s).
-4. APK will appear under `app/build/outputs/apk/debug/app-debug.apk`.
+Go to **GitHub → Actions → Build Jijau Android APK → Run workflow**.
 
-## Command line
+Wait for the build to finish. Then go to **GitHub → Actions → completed build → Artifacts → Jijau-UdyamSuite-APK**.
 
-If Android SDK + Gradle are installed:
+Download the artifact ZIP and extract `Jijau-UdyamSuite.apk`. Install that APK on your Android phone.
 
-```bash
-gradle assembleDebug
-```
-
-For production distribution, create a release keystore and build a signed release APK/AAB.
-
-## Build APK with GitHub Actions
-
-Push this project to the `main` branch of a GitHub repository. Open **Actions → Build Android APK → Run workflow**. After the build finishes, download the `Jijau-UdyamSuite-APK` artifact. It contains `app-debug.apk`.
+Android may ask you to allow installation from unknown sources for the browser or file manager you use to open the APK. This is a debug-signed APK intended for testing.
 # jijau

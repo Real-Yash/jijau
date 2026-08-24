@@ -14,3 +14,9 @@ android {
         versionName = "1.0.0"
     }
 }
+
+dependencies {
+    implementation("androidx.activity:activity:1.9.3")
+    implementation("androidx.core:core:1.13.1")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+}
