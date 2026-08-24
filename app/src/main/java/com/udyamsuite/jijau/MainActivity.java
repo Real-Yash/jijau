@@ -10,8 +10,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -37,7 +35,6 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.view.WindowCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -50,10 +47,6 @@ import java.io.IOException;
 public class MainActivity extends ComponentActivity {
     private static final String HOME_URL = "https://jijau.udyamsuite.com";
     private static final String TRUSTED_HOST = "jijau.udyamsuite.com";
-    private static final int MENU_HOME = 1;
-    private static final int MENU_REFRESH = 2;
-    private static final int MENU_BROWSER = 3;
-
     private WebView webView;
     private SwipeRefreshLayout pullToRefresh;
     private LinearProgressIndicator loadingIndicator;
@@ -103,15 +96,6 @@ public class MainActivity extends ComponentActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(getColor(R.color.webview_surface));
 
-        MaterialToolbar toolbar = new MaterialToolbar(this);
-        toolbar.setTitle(R.string.toolbar_title);
-        toolbar.setTitleTextColor(getColor(R.color.on_app_bar));
-        toolbar.setBackgroundColor(MaterialColors.getColor(toolbar,
-                com.google.android.material.R.attr.colorSurface));
-        addToolbarActions(toolbar);
-        root.addView(toolbar, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(56)));
-
         loadingIndicator = new LinearProgressIndicator(this);
         loadingIndicator.setIndicatorColor(getColor(R.color.progress_indicator));
         loadingIndicator.setTrackColor(getColor(R.color.app_bar));
@@ -153,33 +137,6 @@ public class MainActivity extends ComponentActivity {
                 getWindow(), getWindow().getDecorView());
         insetsController.setAppearanceLightStatusBars(useDarkIcons);
         insetsController.setAppearanceLightNavigationBars(useDarkIcons);
-    }
-
-    private void addToolbarActions(MaterialToolbar toolbar) {
-        toolbar.getMenu().add(Menu.NONE, MENU_HOME, Menu.NONE, R.string.action_home)
-                .setIcon(R.drawable.ic_home)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        toolbar.getMenu().add(Menu.NONE, MENU_REFRESH, Menu.NONE, R.string.action_refresh)
-                .setIcon(R.drawable.ic_refresh)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        toolbar.getMenu().add(Menu.NONE, MENU_BROWSER, Menu.NONE, R.string.action_open_browser)
-                .setIcon(R.drawable.ic_open_in_browser)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        toolbar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == MENU_HOME) {
-                webView.loadUrl(HOME_URL);
-                return true;
-            }
-            if (item.getItemId() == MENU_REFRESH) {
-                webView.reload();
-                return true;
-            }
-            if (item.getItemId() == MENU_BROWSER) {
-                openCurrentPageInBrowser();
-                return true;
-            }
-            return false;
-        });
     }
 
     private View createConnectionErrorView() {
@@ -297,16 +254,6 @@ public class MainActivity extends ComponentActivity {
                 || code == WebViewClient.ERROR_HOST_LOOKUP
                 || code == WebViewClient.ERROR_IO
                 || code == WebViewClient.ERROR_TIMEOUT;
-    }
-
-    private void openCurrentPageInBrowser() {
-        String currentUrl = webView.getUrl();
-        Uri uri = Uri.parse(currentUrl == null ? HOME_URL : currentUrl);
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, uri));
-        } catch (ActivityNotFoundException exception) {
-            Toast.makeText(this, "No app is available to open this link.", Toast.LENGTH_LONG).show();
-        }
     }
 
     private int dp(int value) {
