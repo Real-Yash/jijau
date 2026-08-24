@@ -2,6 +2,17 @@ plugins {
     id("com.android.application")
 }
 
+val releaseStoreFile = System.getenv("JIJAU_STORE_FILE")
+val releaseStorePassword = System.getenv("JIJAU_STORE_PASSWORD")
+val releaseKeyAlias = System.getenv("JIJAU_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("JIJAU_KEY_PASSWORD")
+val hasReleaseSigning = listOf(
+    releaseStoreFile,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword
+).all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.udyamsuite.jijau"
     compileSdk = 35
@@ -12,6 +23,26 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        getByName("release") {
+            if (hasReleaseSigning) {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
     }
 }
 

@@ -12,7 +12,7 @@ Wait for the build to finish. Then go to **GitHub → Actions → completed buil
 
 Download the artifact ZIP and extract `Jijau-UdyamSuite.apk`. Install that APK on your Android phone.
 
-Android may ask you to allow installation from unknown sources for the browser or file manager you use to open the APK. This is a debug-signed APK intended for testing.
+Android may ask you to allow installation from unknown sources for the browser or file manager you use to open the APK. This is a release-signed APK. The signing key is stored in GitHub Actions secrets and has a separate offline backup; do not change or lose that key, because future updates must use the same signing identity.
 
 ## Replace the launcher icon
 

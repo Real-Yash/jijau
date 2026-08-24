@@ -31,13 +31,29 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug --stacktrace
+      - name: Restore release signing key
+        env:
+          JIJAU_KEYSTORE_BASE64: ${{ secrets.JIJAU_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$JIJAU_KEYSTORE_BASE64"
+          printf '%s' "$JIJAU_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/jijau-release.jks"
+          chmod 600 "$RUNNER_TEMP/jijau-release.jks"
+
+      - name: Build signed release APK
+        env:
+          JIJAU_STORE_FILE: ${{ runner.temp }}/jijau-release.jks
+          JIJAU_STORE_PASSWORD: ${{ secrets.JIJAU_KEYSTORE_PASSWORD }}
+          JIJAU_KEY_ALIAS: ${{ secrets.JIJAU_KEY_ALIAS }}
+          JIJAU_KEY_PASSWORD: ${{ secrets.JIJAU_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleRelease --stacktrace
+
+      - name: Verify release signature
+        run: $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk
 
       - name: Stage installable APK
         run: |
           mkdir -p artifact
-          cp app/build/outputs/apk/debug/app-debug.apk artifact/Jijau-UdyamSuite.apk
+          cp app/build/outputs/apk/release/app-release.apk artifact/Jijau-UdyamSuite.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
