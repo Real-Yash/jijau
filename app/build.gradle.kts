@@ -19,3 +19,11 @@ dependencies {
     implementation("androidx.activity:activity:1.9.3")
     implementation("androidx.core:core:1.13.1")
 }
+
+configurations.configureEach {
+    resolutionStrategy.force(
+        "org.jetbrains.kotlin:kotlin-stdlib:1.8.22",
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22",
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
+    )
+}
