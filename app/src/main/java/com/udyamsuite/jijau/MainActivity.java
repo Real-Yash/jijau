@@ -4,6 +4,7 @@ import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -48,7 +49,7 @@ import java.io.IOException;
 
 /** Native WebView wrapper for the Jijau UdyamSuite ERPNext site. */
 public class MainActivity extends ComponentActivity {
-    private static final String HOME_URL = "https://jijau.udyamsuite.com";
+    private static final String HOME_URL = "https://jijau.udyamsuite.com/app/";
     private static final String TRUSTED_HOST = "jijau.udyamsuite.com";
     private WebView webView;
     private SwipeRefreshLayout pullToRefresh;
@@ -139,8 +140,8 @@ public class MainActivity extends ComponentActivity {
     private void applySystemBarAppearance() {
         int surfaceColor = MaterialColors.getColor(webView,
                 com.google.android.material.R.attr.colorSurface);
-        getWindow().setStatusBarColor(surfaceColor);
-        getWindow().setNavigationBarColor(surfaceColor);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
         boolean useDarkIcons = ColorUtils.calculateLuminance(surfaceColor) > 0.5d;
         WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(

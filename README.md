@@ -2,7 +2,7 @@
 
 A minimal Android WebView app for:
 
-https://jijau.udyamsuite.com
+https://jijau.udyamsuite.com/app/
 
 ## Build APK
 
