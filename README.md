@@ -16,7 +16,7 @@ Android may ask you to allow installation from unknown sources for the browser o
 
 ## Replace the launcher icon
 
-The committed launcher icon is a neutral placeholder, not a Jijau logo. Replace these resources when the final logo is available:
+The committed launcher icon is a simple Jijau “J” monogram. Its editable SVG source is `app/src/main/assets/jijau-j-logo.svg`. Replace these resources when final logo artwork is available:
 
 * `app/src/main/res/drawable/ic_launcher_foreground.xml`
 * `app/src/main/res/drawable/ic_launcher_placeholder.xml`

@@ -2,8 +2,8 @@
 <resources>
     <color name="app_bar">#17212B</color>
     <color name="on_app_bar">#F4F7FA</color>
-    <color name="webview_surface">#111827</color>
-    <color name="navigation_bar">#111827</color>
+    <color name="webview_surface">#000000</color>
+    <color name="navigation_bar">#000000</color>
     <color name="on_surface">#E5E7EB</color>
     <color name="progress_indicator">#63B3ED</color>
     <color name="splash_background">#111827</color>

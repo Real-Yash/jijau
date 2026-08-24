@@ -31,12 +31,15 @@ import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.FileProvider;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.view.WindowCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textview.MaterialTextView;
 
@@ -85,6 +88,7 @@ public class MainActivity extends ComponentActivity {
         super.onCreate(savedInstanceState);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
         buildContentView();
+        applySystemBarAppearance();
         configureWebView();
 
         if (savedInstanceState == null) {
@@ -102,6 +106,8 @@ public class MainActivity extends ComponentActivity {
         MaterialToolbar toolbar = new MaterialToolbar(this);
         toolbar.setTitle(R.string.toolbar_title);
         toolbar.setTitleTextColor(getColor(R.color.on_app_bar));
+        toolbar.setBackgroundColor(MaterialColors.getColor(toolbar,
+                com.google.android.material.R.attr.colorSurface));
         addToolbarActions(toolbar);
         root.addView(toolbar, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, dp(56)));
@@ -133,6 +139,20 @@ public class MainActivity extends ComponentActivity {
         root.addView(pullToRefresh, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
         setContentView(root);
+    }
+
+    /** Matches system bars to the active theme and keeps their icons legible. */
+    private void applySystemBarAppearance() {
+        int surfaceColor = MaterialColors.getColor(webView,
+                com.google.android.material.R.attr.colorSurface);
+        getWindow().setStatusBarColor(surfaceColor);
+        getWindow().setNavigationBarColor(surfaceColor);
+
+        boolean useDarkIcons = ColorUtils.calculateLuminance(surfaceColor) > 0.5d;
+        WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(
+                getWindow(), getWindow().getDecorView());
+        insetsController.setAppearanceLightStatusBars(useDarkIcons);
+        insetsController.setAppearanceLightNavigationBars(useDarkIcons);
     }
 
     private void addToolbarActions(MaterialToolbar toolbar) {
@@ -361,6 +381,12 @@ public class MainActivity extends ComponentActivity {
     protected void onPause() {
         CookieManager.getInstance().flush();
         super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        applySystemBarAppearance();
     }
 
     @Override
