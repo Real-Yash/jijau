@@ -26,7 +26,7 @@ android {
     }
 
     signingConfigs {
-        getByName("release") {
+        create("release") {
             if (hasReleaseSigning) {
                 storeFile = file(releaseStoreFile!!)
                 storePassword = releaseStorePassword
